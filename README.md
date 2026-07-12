@@ -1,3 +1,2 @@
 # ODDOO-HACK
-FOR ODDO
-Hello everyone
+TARNSISTOR OPS
