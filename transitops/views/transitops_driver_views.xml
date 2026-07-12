@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- ════════════════════════════════════════════════════════════
+             DRIVER FORM VIEW
+             Screen 3: License details, safety score, compliance status,
+             trip history tab, chatter.
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_transitops_driver_form" model="ir.ui.view">
+            <field name="name">transitops.driver.form</field>
+            <field name="model">transitops.driver</field>
+            <field name="arch" type="xml">
+                <form string="Driver Profile">
+                    <header>
+                        <button name="action_suspend_driver"
+                                string="Suspend Driver"
+                                type="object"
+                                class="btn-danger"
+                                confirm="Suspend this driver? They will be unable to be assigned to trips."
+                                attrs="{'invisible': [('status', 'in', ['suspended', 'on_trip'])]}"/>
+                        <button name="action_reinstate_driver"
+                                string="Reinstate Driver"
+                                type="object"
+                                class="btn-success"
+                                attrs="{'invisible': [('status', '!=', 'suspended')]}"/>
+                        <button name="action_set_off_duty"
+                                string="Set Off Duty"
+                                type="object"
+                                attrs="{'invisible': [('status', 'not in', ['available'])]}"/>
+                        <button name="action_set_available"
+                                string="Set Available"
+                                type="object"
+                                class="btn-primary"
+                                attrs="{'invisible': [('status', '!=', 'off_duty')]}"/>
+                        <field name="status" widget="statusbar"
+                               statusbar_visible="available,on_trip,off_duty,suspended"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="%(action_transitops_trip)d"
+                                    type="action"
+                                    class="oe_stat_button"
+                                    icon="fa-road"
+                                    context="{'search_default_driver_id': active_id}">
+                                <div class="o_field_widget o_stat_info">
+                                    <span class="o_stat_value">
+                                        <field name="total_trips_completed"/>
+                                    </span>
+                                    <span class="o_stat_text">Trips</span>
+                                </div>
+                            </button>
+                        </div>
+                        <field name="image" widget="image"
+                               class="oe_avatar"
+                               options="{'preview_image': 'image'}"/>
+                        <div class="oe_title">
+                            <label for="name" string="Driver Name"/>
+                            <h1>
+                                <field name="name" placeholder="Full Name"/>
+                            </h1>
+                            <div class="o_row">
+                                <field name="employee_id" placeholder="Employee ID"/>
+                            </div>
+                        </div>
+
+                        <!-- License Expiry Warning Banner -->
+                        <div class="alert alert-danger" role="alert"
+                             attrs="{'invisible': [('is_license_expired', '=', False)]}">
+                            <i class="fa fa-exclamation-triangle"/> License Expired!
+                            This driver cannot be assigned to any trip until their license is renewed.
+                        </div>
+                        <div class="alert alert-warning" role="alert"
+                             attrs="{'invisible': ['|',
+                                 ('is_license_expired', '=', True),
+                                 ('days_until_expiry', '>', 30)]}">
+                            <i class="fa fa-clock-o"/> License expires in
+                            <strong><field name="days_until_expiry" readonly="1"/> days</strong>.
+                            Please arrange renewal soon.
+                        </div>
+
+                        <group>
+                            <group string="Personal Details">
+                                <field name="contact_number"/>
+                                <field name="email"/>
+                                <field name="notes" string="Notes"/>
+                            </group>
+                            <group string="License &amp; Compliance">
+                                <field name="license_number"/>
+                                <field name="license_category"/>
+                                <field name="license_expiry_date"/>
+                                <field name="is_license_expired" readonly="1"/>
+                                <field name="days_until_expiry" readonly="1"
+                                       string="Days Until Expiry"/>
+                                <field name="safety_score" widget="progressbar"
+                                       options="{'editable': true, 'max_value': 100}"/>
+                                <field name="compliance_status" readonly="1"
+                                       decoration-success="compliance_status == 'compliant'"
+                                       decoration-warning="compliance_status == 'warning'"
+                                       decoration-danger="compliance_status == 'non_compliant'"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Trip History" name="trips">
+                                <field name="trip_ids" readonly="1">
+                                    <tree decoration-success="state=='completed'"
+                                          decoration-info="state=='dispatched'"
+                                          decoration-muted="state=='cancelled'">
+                                        <field name="name"/>
+                                        <field name="source_location"/>
+                                        <field name="destination_location"/>
+                                        <field name="vehicle_id"/>
+                                        <field name="cargo_weight"/>
+                                        <field name="state"/>
+                                        <field name="create_date" string="Date"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             DRIVER TREE VIEW
+             Screen 3: License No, Category, Expiry, Contact, Safety Score,
+             Status + Compliance Status columns with decorations.
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_transitops_driver_tree" model="ir.ui.view">
+            <field name="name">transitops.driver.tree</field>
+            <field name="model">transitops.driver</field>
+            <field name="arch" type="xml">
+                <tree string="Drivers &amp; Safety Profiles"
+                      decoration-success="status == 'available' and compliance_status == 'compliant'"
+                      decoration-warning="compliance_status == 'warning'"
+                      decoration-danger="status == 'suspended' or compliance_status == 'non_compliant'"
+                      decoration-info="status == 'on_trip'"
+                      decoration-muted="status == 'off_duty'">
+                    <field name="name" string="Driver Name"/>
+                    <field name="license_number" string="License No"/>
+                    <field name="license_category" string="Category"/>
+                    <field name="license_expiry_date" string="Expiry Date"/>
+                    <field name="days_until_expiry" string="Days Left"/>
+                    <field name="contact_number" string="Contact"/>
+                    <field name="safety_score" string="Safety Score"
+                           widget="progressbar"
+                           options="{'editable': false, 'max_value': 100}"/>
+                    <field name="status" string="Op. Status"
+                           decoration-success="status == 'available'"
+                           decoration-info="status == 'on_trip'"
+                           decoration-muted="status == 'off_duty'"
+                           decoration-danger="status == 'suspended'"/>
+                    <field name="compliance_status" string="Compliance"
+                           decoration-success="compliance_status == 'compliant'"
+                           decoration-warning="compliance_status == 'warning'"
+                           decoration-danger="compliance_status == 'non_compliant'"/>
+                    <field name="total_trips_completed" string="Trips"/>
+                    <field name="is_license_expired" invisible="1"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             DRIVER SEARCH VIEW
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_transitops_driver_search" model="ir.ui.view">
+            <field name="name">transitops.driver.search</field>
+            <field name="model">transitops.driver</field>
+            <field name="arch" type="xml">
+                <search string="Search Drivers">
+                    <field name="name" string="Driver Name"/>
+                    <field name="license_number"/>
+                    <separator/>
+                    <filter string="Available" name="filter_available"
+                            domain="[('status', '=', 'available')]"/>
+                    <filter string="On Trip" name="filter_on_trip"
+                            domain="[('status', '=', 'on_trip')]"/>
+                    <filter string="Off Duty" name="filter_off_duty"
+                            domain="[('status', '=', 'off_duty')]"/>
+                    <filter string="Suspended" name="filter_suspended"
+                            domain="[('status', '=', 'suspended')]"/>
+                    <separator/>
+                    <filter string="Compliant" name="filter_compliant"
+                            domain="[('compliance_status', '=', 'compliant')]"/>
+                    <filter string="License Warning" name="filter_warning"
+                            domain="[('compliance_status', '=', 'warning')]"/>
+                    <filter string="Non-Compliant" name="filter_non_compliant"
+                            domain="[('compliance_status', '=', 'non_compliant')]"/>
+                    <separator/>
+                    <filter string="Expired License" name="filter_expired"
+                            domain="[('is_license_expired', '=', True)]"/>
+                    <group expand="0" string="Group By">
+                        <filter string="Status" name="group_status"
+                                context="{'group_by': 'status'}"/>
+                        <filter string="Compliance" name="group_compliance"
+                                context="{'group_by': 'compliance_status'}"/>
+                        <filter string="License Category" name="group_category"
+                                context="{'group_by': 'license_category'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             DRIVER ACTION
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="action_transitops_driver" model="ir.actions.act_window">
+            <field name="name">Drivers &amp; Safety Profiles</field>
+            <field name="res_model">transitops.driver</field>
+            <field name="view_mode">tree,form</field>
+            <field name="search_view_id" ref="view_transitops_driver_search"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Register your first driver!
+                </p>
+                <p>Add driver profiles, track license validity and safety scores.</p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

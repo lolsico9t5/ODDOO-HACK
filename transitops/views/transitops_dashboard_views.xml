@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- ════════════════════════════════════════════════════════════
+             DASHBOARD — VEHICLE STATS ACTION
+             Used by the dashboard board to show real-time vehicle KPIs.
+        ════════════════════════════════════════════════════════════════ -->
+
+        <!-- Quick KPI actions for dashboard stat buttons -->
+        <record id="action_transitops_vehicles_available" model="ir.actions.act_window">
+            <field name="name">Available Vehicles</field>
+            <field name="res_model">transitops.vehicle</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('status', '=', 'available')]</field>
+            <field name="context">{'search_default_filter_available': 1}</field>
+        </record>
+
+        <record id="action_transitops_vehicles_on_trip" model="ir.actions.act_window">
+            <field name="name">Vehicles On Trip</field>
+            <field name="res_model">transitops.vehicle</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('status', '=', 'on_trip')]</field>
+        </record>
+
+        <record id="action_transitops_vehicles_in_shop" model="ir.actions.act_window">
+            <field name="name">Vehicles In Maintenance</field>
+            <field name="res_model">transitops.vehicle</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('status', '=', 'in_shop')]</field>
+        </record>
+
+        <record id="action_transitops_trips_active" model="ir.actions.act_window">
+            <field name="name">Active Trips</field>
+            <field name="res_model">transitops.trip</field>
+            <field name="view_mode">tree,kanban,form</field>
+            <field name="domain">[('state', '=', 'dispatched')]</field>
+        </record>
+
+        <record id="action_transitops_trips_pending" model="ir.actions.act_window">
+            <field name="name">Pending Trips</field>
+            <field name="res_model">transitops.trip</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('state', '=', 'draft')]</field>
+        </record>
+
+        <record id="action_transitops_drivers_on_duty" model="ir.actions.act_window">
+            <field name="name">Drivers On Duty</field>
+            <field name="res_model">transitops.driver</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('status', '=', 'on_trip')]</field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             DASHBOARD BOARD VIEW
+             Screen 1: KPI stat boxes + Recent Trips list + Vehicle Status
+             breakdown using Odoo's native board view.
+             The board view embeds multiple actions as dashboard panels.
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_transitops_dashboard_board" model="ir.ui.view">
+            <field name="name">transitops.dashboard.board</field>
+            <field name="model">board.board</field>
+            <field name="arch" type="xml">
+                <board style="2-1">
+                    <column>
+                        <!-- KPI: All Vehicles -->
+                        <action string="🚛 Vehicle Fleet Overview"
+                                name="%(action_transitops_vehicle)d"
+                                view_mode="list"
+                                domain="[]"/>
+                        <!-- Recent Trips -->
+                        <action string="📋 Recent Trips"
+                                name="%(action_transitops_trip)d"
+                                view_mode="list"
+                                domain="[]"
+                                context="{'search_default_filter_dispatched': 1}"/>
+                    </column>
+                    <column>
+                        <!-- Maintenance In Progress -->
+                        <action string="🔧 Maintenance In Progress"
+                                name="%(action_transitops_maintenance)d"
+                                view_mode="list"
+                                domain="[('status', '=', 'in_shop')]"/>
+                        <!-- Driver Compliance -->
+                        <action string="👤 Driver Compliance"
+                                name="%(action_transitops_driver)d"
+                                view_mode="list"
+                                domain="[('compliance_status', '!=', 'compliant')]"/>
+                    </column>
+                </board>
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             DASHBOARD ACTION
+             Opens the board view as the TransitOps home dashboard.
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="action_transitops_dashboard" model="ir.actions.act_window">
+            <field name="name">TransitOps Dashboard</field>
+            <field name="res_model">board.board</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_transitops_dashboard_board"/>
+            <field name="target">inline</field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- ════════════════════════════════════════════════════════════
+             VEHICLE ANALYTICS — Graph View (Bar: Monthly Trips by Vehicle)
+             Screen 7 left chart: Monthly Revenue / Trip Volume bar chart.
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_transitops_vehicle_graph" model="ir.ui.view">
+            <field name="name">transitops.vehicle.graph</field>
+            <field name="model">transitops.vehicle</field>
+            <field name="arch" type="xml">
+                <graph string="Vehicle Cost Analysis" type="bar">
+                    <field name="name" type="row"/>
+                    <field name="total_operational_cost" type="measure"/>
+                    <field name="total_fuel_cost" type="measure"/>
+                    <field name="total_maintenance_cost" type="measure"/>
+                </graph>
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             VEHICLE ANALYTICS — Pivot View
+             Allows drill-down by vehicle type, region, status.
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_transitops_vehicle_pivot" model="ir.ui.view">
+            <field name="name">transitops.vehicle.pivot</field>
+            <field name="model">transitops.vehicle</field>
+            <field name="arch" type="xml">
+                <pivot string="Vehicle Cost Pivot">
+                    <field name="vehicle_type" type="row"/>
+                    <field name="region" type="col"/>
+                    <field name="total_operational_cost" type="measure"/>
+                    <field name="total_fuel_cost" type="measure"/>
+                    <field name="total_maintenance_cost" type="measure"/>
+                    <field name="roi" type="measure"/>
+                    <field name="fuel_efficiency" type="measure"/>
+                    <field name="completed_trip_count" type="measure"/>
+                </pivot>
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             TRIP ANALYTICS — Graph View (trips over time)
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_transitops_trip_graph" model="ir.ui.view">
+            <field name="name">transitops.trip.graph</field>
+            <field name="model">transitops.trip</field>
+            <field name="arch" type="xml">
+                <graph string="Trip Analytics" type="bar">
+                    <field name="create_date" interval="month" type="col"/>
+                    <field name="state" type="row"/>
+                    <field name="actual_distance" type="measure"/>
+                    <field name="fuel_consumed" type="measure"/>
+                </graph>
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             TRIP ANALYTICS — Pivot View
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_transitops_trip_pivot" model="ir.ui.view">
+            <field name="name">transitops.trip.pivot</field>
+            <field name="model">transitops.trip</field>
+            <field name="arch" type="xml">
+                <pivot string="Trip Volume Pivot">
+                    <field name="state" type="col"/>
+                    <field name="vehicle_id" type="row"/>
+                    <field name="actual_distance" type="measure"/>
+                    <field name="fuel_consumed" type="measure"/>
+                    <field name="cargo_weight" type="measure"/>
+                </pivot>
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             FUEL LOG ANALYTICS — Graph (Fuel Cost by Vehicle)
+             Screen 7 right chart: Top Costliest Vehicles (horizontal bar).
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_transitops_fuel_log_graph" model="ir.ui.view">
+            <field name="name">transitops.fuel.log.graph</field>
+            <field name="model">transitops.fuel.log</field>
+            <field name="arch" type="xml">
+                <graph string="Fuel Cost by Vehicle" type="bar" stacked="0">
+                    <field name="vehicle_id" type="row"/>
+                    <field name="total_cost" type="measure"/>
+                    <field name="liters" type="measure"/>
+                </graph>
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             ANALYTICS ACTION — Vehicle Cost KPIs
+             Screen 7: KPI stat row (Fuel Efficiency, Operational Cost, ROI)
+             + bar chart + pivot in a multi-view action.
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="action_transitops_analytics_vehicles" model="ir.actions.act_window">
+            <field name="name">Fleet Analytics</field>
+            <field name="res_model">transitops.vehicle</field>
+            <field name="view_mode">pivot,graph,tree</field>
+            <field name="context">{}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">No data yet!</p>
+                <p>Vehicle cost analytics will populate as trips, maintenance, and fuel logs are recorded.</p>
+            </field>
+        </record>
+
+        <!-- Trip analytics action -->
+        <record id="action_transitops_analytics_trips" model="ir.actions.act_window">
+            <field name="name">Trip Analytics</field>
+            <field name="res_model">transitops.trip</field>
+            <field name="view_mode">pivot,graph,tree</field>
+        </record>
+
+        <!-- Fuel analytics action -->
+        <record id="action_transitops_analytics_fuel" model="ir.actions.act_window">
+            <field name="name">Fuel Cost Analytics</field>
+            <field name="res_model">transitops.fuel.log</field>
+            <field name="view_mode">graph,pivot,tree</field>
+        </record>
+
+    </data>
+</odoo>

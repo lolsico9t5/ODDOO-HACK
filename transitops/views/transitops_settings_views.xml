@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- ════════════════════════════════════════════════════════════
+             RBAC SETTINGS VIEW
+             Screen 8: Role × Module access matrix displayed as a
+             read-only form. Shows which modules each role can access
+             with ✓ (full access), ◐ (read-only), or — (no access).
+             Implemented as a board.board form with an embedded HTML
+             table; no Python model needed — purely informational.
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_transitops_settings_form" model="ir.ui.view">
+            <field name="name">transitops.settings.form</field>
+            <field name="model">board.board</field>
+            <field name="arch" type="xml">
+                <form string="TransitOps — Role &amp; Access Settings">
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>TransitOps Settings &amp; RBAC Matrix</h1>
+                            <p class="text-muted">
+                                Access control is enforced through Odoo's standard
+                                <strong>res.groups</strong> membership. Users inherit
+                                menu visibility and model permissions from their assigned group(s).
+                            </p>
+                        </div>
+
+                        <!-- Role × Module access matrix table -->
+                        <div class="row mt16">
+                            <div class="col-12">
+                                <h3 style="color:#f0a500; border-bottom: 2px solid #3d5166; padding-bottom:6px;">
+                                    Role Access Matrix
+                                </h3>
+                                <table class="table table-bordered table-hover" style="margin-top:12px;">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th style="min-width:160px;">Module / Feature</th>
+                                            <th class="text-center">🛻 Fleet Manager</th>
+                                            <th class="text-center">📡 Dispatcher</th>
+                                            <th class="text-center">🛡 Safety Officer</th>
+                                            <th class="text-center">💰 Financial Analyst</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Dashboard</strong></td>
+                                            <td class="text-center text-success">✓ Full</td>
+                                            <td class="text-center text-success">✓ Full</td>
+                                            <td class="text-center text-success">✓ Full</td>
+                                            <td class="text-center text-success">✓ Full</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Vehicles (Registry)</strong></td>
+                                            <td class="text-center text-success">✓ Full CRUD</td>
+                                            <td class="text-center text-warning">◐ Read Only</td>
+                                            <td class="text-center text-warning">◐ Read Only</td>
+                                            <td class="text-center text-warning">◐ Read Only</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Drivers &amp; Safety</strong></td>
+                                            <td class="text-center text-warning">◐ Read Only</td>
+                                            <td class="text-center text-warning">◐ Read Only</td>
+                                            <td class="text-center text-success">✓ Full CRUD</td>
+                                            <td class="text-center text-danger">— No Access</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Trip Dispatcher</strong></td>
+                                            <td class="text-center text-warning">◐ Read Only</td>
+                                            <td class="text-center text-success">✓ Full CRUD</td>
+                                            <td class="text-center text-warning">◐ Read Only</td>
+                                            <td class="text-center text-danger">— No Access</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Maintenance</strong></td>
+                                            <td class="text-center text-success">✓ Full CRUD</td>
+                                            <td class="text-center text-danger">— No Access</td>
+                                            <td class="text-center text-danger">— No Access</td>
+                                            <td class="text-center text-warning">◐ Read Only</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Fuel Logs</strong></td>
+                                            <td class="text-center text-info">◑ Read/Write</td>
+                                            <td class="text-center text-danger">— No Access</td>
+                                            <td class="text-center text-danger">— No Access</td>
+                                            <td class="text-center text-success">✓ Full CRUD</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Expenses</strong></td>
+                                            <td class="text-center text-info">◑ Read/Write</td>
+                                            <td class="text-center text-danger">— No Access</td>
+                                            <td class="text-center text-danger">— No Access</td>
+                                            <td class="text-center text-success">✓ Full CRUD</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Analytics &amp; Reports</strong></td>
+                                            <td class="text-center text-success">✓ Full</td>
+                                            <td class="text-center text-danger">— No Access</td>
+                                            <td class="text-center text-danger">— No Access</td>
+                                            <td class="text-center text-success">✓ Full</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Settings (RBAC View)</strong></td>
+                                            <td class="text-center text-success">✓ Full</td>
+                                            <td class="text-center text-danger">— No Access</td>
+                                            <td class="text-center text-danger">— No Access</td>
+                                            <td class="text-center text-danger">— No Access</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div class="mt8 text-muted small">
+                                    <strong>Legend:</strong>
+                                    ✓ Full — Create, Read, Update, Delete |
+                                    ◑ Read/Write — Read + Write, no delete |
+                                    ◐ Read Only — View records only |
+                                    — No Access — Menu hidden, model access blocked at ORM level
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- How login routing works -->
+                        <div class="row mt16">
+                            <div class="col-12">
+                                <h3 style="color:#f0a500; border-bottom: 2px solid #3d5166; padding-bottom:6px;">
+                                    Single Login — Role-Based Routing
+                                </h3>
+                                <div class="alert alert-info mt8" role="alert">
+                                    <i class="fa fa-info-circle"/>
+                                    <strong> How it works:</strong>
+                                    Odoo's native login screen handles authentication.
+                                    After login, menu visibility is controlled by the
+                                    <code>groups=</code> attribute on each
+                                    <code>&lt;menuitem&gt;</code> record.
+                                    Users only see menus their group has access to,
+                                    creating a role-appropriate landing experience
+                                    without any custom authentication code.
+                                </div>
+                                <table class="table table-sm table-bordered">
+                                    <thead class="table-secondary">
+                                        <tr>
+                                            <th>Role</th>
+                                            <th>Default Landing View</th>
+                                            <th>Odoo Group</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Fleet Manager</td>
+                                            <td>Dashboard → Vehicle Registry</td>
+                                            <td><code>transitops.group_transitops_fleet_manager</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Dispatcher</td>
+                                            <td>Dashboard → Trip Dispatcher</td>
+                                            <td><code>transitops.group_transitops_dispatcher</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Safety Officer</td>
+                                            <td>Dashboard → Drivers &amp; Safety</td>
+                                            <td><code>transitops.group_transitops_safety_officer</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Financial Analyst</td>
+                                            <td>Dashboard → Fuel &amp; Expenses</td>
+                                            <td><code>transitops.group_transitops_financial_analyst</code></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Settings action -->
+        <record id="action_transitops_settings" model="ir.actions.act_window">
+            <field name="name">Settings &amp; RBAC</field>
+            <field name="res_model">board.board</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_transitops_settings_form"/>
+            <field name="target">inline</field>
+        </record>
+
+    </data>
+</odoo>

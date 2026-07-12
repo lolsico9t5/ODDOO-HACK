@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <!-- ════════════════════════════════════════════════════════════════
+             MODULE CATEGORY
+             Creates the "TransitOps" application category that groups all
+             TransitOps security groups in the Settings → Users interface.
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="module_category_transitops" model="ir.module.category">
+            <field name="name">TransitOps</field>
+            <field name="description">
+                Smart Transport Operations Management — roles for managing fleet,
+                dispatching trips, ensuring driver compliance, and analysing financials.
+            </field>
+            <field name="sequence">100</field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════════
+             GROUP 1: Fleet Manager
+             Full access to vehicle registry, maintenance, fuel/expense read/write,
+             trip history (read), and all analytics reports.
+             Typical user: Fleet/Operations Manager.
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="group_transitops_fleet_manager" model="res.groups">
+            <field name="name">Fleet Manager</field>
+            <field name="category_id" ref="module_category_transitops"/>
+            <field name="comment">
+                Full control over vehicle lifecycle, maintenance workflows, and
+                operational cost reporting. Can view all trips and driver records.
+                Cannot dispatch trips (Dispatcher role) or manage driver profiles
+                (Safety Officer role) unless also assigned those groups.
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════════
+             GROUP 2: Dispatcher
+             Creates, dispatches, and monitors trips. Read-only access to
+             vehicle and driver records (to select them for trips).
+             No access to financial data (fuel costs, expenses, analytics).
+             Typical user: Dispatch Coordinator, Logistics Officer.
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="group_transitops_dispatcher" model="res.groups">
+            <field name="name">Dispatcher</field>
+            <field name="category_id" ref="module_category_transitops"/>
+            <field name="comment">
+                Creates and manages trip records. Can view available vehicles and
+                drivers when selecting them for a trip. Cannot edit vehicle/driver
+                records, view financial data, or access maintenance records.
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════════
+             GROUP 3: Safety Officer
+             Full CRUD on driver profiles (licenses, safety scores, status).
+             Read-only access to trips (for compliance monitoring).
+             No access to financial data or vehicle maintenance.
+             Typical user: Health &amp; Safety Coordinator, HR Compliance Officer.
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="group_transitops_safety_officer" model="res.groups">
+            <field name="name">Safety Officer</field>
+            <field name="category_id" ref="module_category_transitops"/>
+            <field name="comment">
+                Manages driver compliance: license validity, safety scores, and
+                suspension. Can view trip records for audit. Cannot create or
+                dispatch trips, modify vehicles, or access financial records.
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════════
+             GROUP 4: Financial Analyst
+             Full CRUD on fuel logs and expenses. Read-only access to vehicles,
+             maintenance, and analytics. No write access to trips, drivers,
+             or operational dispatch functions.
+             Typical user: Finance Officer, Cost Accountant.
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="group_transitops_financial_analyst" model="res.groups">
+            <field name="name">Financial Analyst</field>
+            <field name="category_id" ref="module_category_transitops"/>
+            <field name="comment">
+                Manages fuel consumption logs and operational expense records.
+                Read-only access to vehicle and maintenance data for cost analysis.
+                Cannot dispatch trips, modify driver profiles, or access restricted
+                operational fields.
+            </field>
+        </record>
+
+    </data>
+</odoo>

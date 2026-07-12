@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- ════════════════════════════════════════════════════════════
+             VEHICLE FORM VIEW
+             Matches Screen 2 layout: image, two-column fields, tabs for
+             analytics, trip history, fuel logs, and chatter.
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_transitops_vehicle_form" model="ir.ui.view">
+            <field name="name">transitops.vehicle.form</field>
+            <field name="model">transitops.vehicle</field>
+            <field name="arch" type="xml">
+                <form string="Vehicle">
+                    <header>
+                        <button name="action_retire_vehicle"
+                                string="Retire Vehicle"
+                                type="object"
+                                class="btn-danger"
+                                confirm="Are you sure you want to retire this vehicle? It will no longer be available for trips."
+                                attrs="{'invisible': [('status', '=', 'retired')]}"/>
+                        <button name="action_reactivate_vehicle"
+                                string="Reactivate"
+                                type="object"
+                                class="btn-success"
+                                attrs="{'invisible': [('status', '!=', 'retired')]}"/>
+                        <field name="status" widget="statusbar"
+                               statusbar_visible="available,on_trip,in_shop,retired"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="%(action_transitops_trip)d"
+                                    type="action"
+                                    class="oe_stat_button"
+                                    icon="fa-road"
+                                    context="{'search_default_vehicle_id': active_id}">
+                                <div class="o_field_widget o_stat_info">
+                                    <span class="o_stat_value">
+                                        <field name="completed_trip_count"/>
+                                    </span>
+                                    <span class="o_stat_text">Trips</span>
+                                </div>
+                            </button>
+                        </div>
+                        <field name="image" widget="image"
+                               class="oe_avatar"
+                               options="{'preview_image': 'image'}"/>
+                        <div class="oe_title">
+                            <label for="name" string="Vehicle Name"/>
+                            <h1>
+                                <field name="name" placeholder="e.g. Toyota Hilux 2022"/>
+                            </h1>
+                            <div class="o_row">
+                                <field name="registration_number"
+                                       placeholder="e.g. KBA-123A"
+                                       style="font-weight:700; font-size:1.1em;"/>
+                            </div>
+                        </div>
+                        <group>
+                            <group string="Vehicle Details">
+                                <field name="vehicle_type"/>
+                                <field name="max_load_capacity" string="Max Load Capacity (kg)"/>
+                                <field name="odometer" string="Odometer (km)"/>
+                                <field name="region"/>
+                                <field name="active"/>
+                            </group>
+                            <group string="Financial">
+                                <field name="acquisition_cost" string="Acquisition Cost"/>
+                                <field name="total_fuel_cost" readonly="1"/>
+                                <field name="total_maintenance_cost" readonly="1"/>
+                                <field name="total_operational_cost" readonly="1"
+                                       string="Total Operational Cost"/>
+                                <field name="fuel_efficiency" readonly="1"
+                                       string="Fuel Efficiency (km/L)"/>
+                                <field name="roi" readonly="1"
+                                       string="ROI (%)" widget="percentage"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Trip History" name="trips">
+                                <field name="trip_ids" readonly="1">
+                                    <tree decoration-success="state=='completed'"
+                                          decoration-info="state=='dispatched'"
+                                          decoration-muted="state=='cancelled'">
+                                        <field name="name"/>
+                                        <field name="source_location"/>
+                                        <field name="destination_location"/>
+                                        <field name="driver_id"/>
+                                        <field name="cargo_weight"/>
+                                        <field name="actual_distance"/>
+                                        <field name="state"/>
+                                        <field name="create_date" string="Date"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="Fuel Logs" name="fuel_logs">
+                                <field name="fuel_log_ids">
+                                    <tree editable="bottom">
+                                        <field name="name" readonly="1"/>
+                                        <field name="date"/>
+                                        <field name="liters"/>
+                                        <field name="cost_per_liter"/>
+                                        <field name="total_cost" readonly="1"/>
+                                        <field name="odometer_reading"/>
+                                        <field name="fuel_station"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="Maintenance" name="maintenance">
+                                <field name="maintenance_ids" readonly="1">
+                                    <tree decoration-warning="status=='in_shop'"
+                                          decoration-success="status=='completed'">
+                                        <field name="name"/>
+                                        <field name="service_type"/>
+                                        <field name="date"/>
+                                        <field name="cost"/>
+                                        <field name="service_provider"/>
+                                        <field name="status"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="Expenses" name="expenses">
+                                <field name="expense_ids">
+                                    <tree editable="bottom">
+                                        <field name="name" readonly="1"/>
+                                        <field name="expense_type"/>
+                                        <field name="date"/>
+                                        <field name="amount"/>
+                                        <field name="receipt_number"/>
+                                        <field name="related_trip_id"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             VEHICLE TREE VIEW
+             Screen 2: Reg No, Name, Type, Capacity, Odometer,
+             Acquisition Cost, Status — with decoration colours.
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_transitops_vehicle_tree" model="ir.ui.view">
+            <field name="name">transitops.vehicle.tree</field>
+            <field name="model">transitops.vehicle</field>
+            <field name="arch" type="xml">
+                <tree string="Vehicles"
+                      decoration-success="status == 'available'"
+                      decoration-info="status == 'on_trip'"
+                      decoration-warning="status == 'in_shop'"
+                      decoration-danger="status == 'retired'">
+                    <field name="registration_number" string="Reg. No"/>
+                    <field name="name" string="Vehicle Name"/>
+                    <field name="vehicle_type" string="Type"/>
+                    <field name="max_load_capacity" string="Capacity (kg)"/>
+                    <field name="odometer" string="Odometer (km)"/>
+                    <field name="region" string="Region"/>
+                    <field name="acquisition_cost" string="Acquisition Cost"/>
+                    <field name="total_operational_cost" string="Operational Cost"/>
+                    <field name="fuel_efficiency" string="Efficiency (km/L)"/>
+                    <field name="status" string="Status"
+                           decoration-success="status == 'available'"
+                           decoration-info="status == 'on_trip'"
+                           decoration-warning="status == 'in_shop'"
+                           decoration-danger="status == 'retired'"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             VEHICLE KANBAN VIEW
+             Grouped by status with coloured status badges.
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_transitops_vehicle_kanban" model="ir.ui.view">
+            <field name="name">transitops.vehicle.kanban</field>
+            <field name="model">transitops.vehicle</field>
+            <field name="arch" type="xml">
+                <kanban default_group_by="status" class="o_kanban_small_column">
+                    <field name="name"/>
+                    <field name="registration_number"/>
+                    <field name="vehicle_type"/>
+                    <field name="status"/>
+                    <field name="max_load_capacity"/>
+                    <field name="odometer"/>
+                    <field name="image"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="oe_kanban_global_click o_kanban_record">
+                                <div class="o_kanban_image">
+                                    <img t-att-src="kanban_image('transitops.vehicle', 'image', record.id.value)"
+                                         alt="Vehicle" style="width:48px; height:48px; object-fit:cover; border-radius:4px;"/>
+                                </div>
+                                <div class="oe_kanban_details">
+                                    <strong class="o_kanban_record_title">
+                                        <field name="name"/>
+                                    </strong>
+                                    <div class="o_kanban_record_subtitle text-muted">
+                                        <field name="registration_number"/>
+                                    </div>
+                                    <div class="mt4">
+                                        <span class="badge rounded-pill"
+                                              t-attf-class="badge rounded-pill
+                                                  #{record.status.value == 'available' ? 'bg-success' : ''}
+                                                  #{record.status.value == 'on_trip' ? 'bg-info' : ''}
+                                                  #{record.status.value == 'in_shop' ? 'bg-warning text-dark' : ''}
+                                                  #{record.status.value == 'retired' ? 'bg-danger' : ''}">
+                                            <field name="status"/>
+                                        </span>
+                                    </div>
+                                    <div class="text-muted small mt4">
+                                        <i class="fa fa-truck"/> <field name="vehicle_type"/>
+                                        <span class="ms-2">
+                                            <i class="fa fa-tachometer"/> <field name="odometer"/> km
+                                        </span>
+                                    </div>
+                                    <div class="small">
+                                        Capacity: <strong><field name="max_load_capacity"/> kg</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             VEHICLE SEARCH VIEW
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_transitops_vehicle_search" model="ir.ui.view">
+            <field name="name">transitops.vehicle.search</field>
+            <field name="model">transitops.vehicle</field>
+            <field name="arch" type="xml">
+                <search string="Search Vehicles">
+                    <field name="name" string="Vehicle Name"/>
+                    <field name="registration_number" string="Reg. Number"/>
+                    <field name="region"/>
+                    <separator/>
+                    <filter string="Available" name="filter_available"
+                            domain="[('status', '=', 'available')]"/>
+                    <filter string="On Trip" name="filter_on_trip"
+                            domain="[('status', '=', 'on_trip')]"/>
+                    <filter string="In Maintenance" name="filter_in_shop"
+                            domain="[('status', '=', 'in_shop')]"/>
+                    <filter string="Retired" name="filter_retired"
+                            domain="[('status', '=', 'retired')]"/>
+                    <separator/>
+                    <filter string="Archived" name="filter_inactive"
+                            domain="[('active', '=', False)]"/>
+                    <group expand="0" string="Group By">
+                        <filter string="Type" name="group_type" context="{'group_by': 'vehicle_type'}"/>
+                        <filter string="Status" name="group_status" context="{'group_by': 'status'}"/>
+                        <filter string="Region" name="group_region" context="{'group_by': 'region'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             VEHICLE ACTION
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="action_transitops_vehicle" model="ir.actions.act_window">
+            <field name="name">Vehicle Registry</field>
+            <field name="res_model">transitops.vehicle</field>
+            <field name="view_mode">tree,kanban,form</field>
+            <field name="search_view_id" ref="view_transitops_vehicle_search"/>
+            <field name="context">{}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Add your first vehicle to the fleet!
+                </p>
+                <p>Register vehicles to begin tracking trips, maintenance, and operational costs.</p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

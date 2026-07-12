@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- ════════════════════════════════════════════════════════════
+             MAINTENANCE FORM VIEW
+             Screen 5: Split — left = log service form, right = maintenance
+             history list. State footnote block at bottom showing workflow.
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_transitops_maintenance_form" model="ir.ui.view">
+            <field name="name">transitops.maintenance.form</field>
+            <field name="model">transitops.maintenance</field>
+            <field name="arch" type="xml">
+                <form string="Maintenance Work Order">
+                    <header>
+                        <button name="action_close"
+                                string="Mark Completed"
+                                type="object"
+                                class="btn-success oe_highlight"
+                                confirm="Mark this maintenance as completed? The vehicle will be returned to Available."
+                                attrs="{'invisible': [('status', '!=', 'in_shop')]}"/>
+                        <field name="status" widget="statusbar"
+                               statusbar_visible="in_shop,completed"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name" string="Work Order Ref"/>
+                            <h1>
+                                <field name="name" readonly="1"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group string="Service Details">
+                                <field name="vehicle_id"
+                                       domain="[('status', 'not in', ['on_trip', 'retired'])]"
+                                       options="{'no_create': True}"/>
+                                <field name="service_type"/>
+                                <field name="service_provider" placeholder="Garage or technician name"/>
+                                <field name="date"/>
+                                <field name="estimated_completion"/>
+                            </group>
+                            <group string="Cost &amp; Status">
+                                <field name="cost"/>
+                                <field name="status" readonly="1"/>
+                            </group>
+                        </group>
+                        <group string="Work Description">
+                            <field name="description" nolabel="1"
+                                   placeholder="Describe the maintenance work performed..."/>
+                        </group>
+
+                        <!-- Workflow footnote matching Screen 5 -->
+                        <div class="alert alert-info" role="alert" style="margin-top:12px;">
+                            <i class="fa fa-info-circle"/>
+                            <strong> Maintenance Workflow:</strong>
+                            When a maintenance record is created → vehicle status automatically
+                            changes to <strong>In Maintenance</strong>. Clicking
+                            <em>Mark Completed</em> returns the vehicle to
+                            <strong>Available</strong> (unless retired).
+                        </div>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             MAINTENANCE TREE VIEW
+             Screen 5 right panel: Vehicle, Service Type, Cost, Date,
+             Status with decorations + action button.
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_transitops_maintenance_tree" model="ir.ui.view">
+            <field name="name">transitops.maintenance.tree</field>
+            <field name="model">transitops.maintenance</field>
+            <field name="arch" type="xml">
+                <tree string="Maintenance Records"
+                      decoration-warning="status == 'in_shop'"
+                      decoration-success="status == 'completed'">
+                    <field name="name" string="Work Order"/>
+                    <field name="vehicle_id" string="Vehicle"/>
+                    <field name="service_type" string="Service Type"/>
+                    <field name="service_provider" string="Provider"/>
+                    <field name="date" string="Date"/>
+                    <field name="estimated_completion" string="Est. Completion"/>
+                    <field name="cost" string="Cost"/>
+                    <field name="status" string="Status"
+                           decoration-warning="status == 'in_shop'"
+                           decoration-success="status == 'completed'"/>
+                    <button name="action_close" string="Complete" type="object"
+                            class="btn-success btn-sm"
+                            attrs="{'invisible': [('status', '!=', 'in_shop')]}"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             MAINTENANCE SEARCH VIEW
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_transitops_maintenance_search" model="ir.ui.view">
+            <field name="name">transitops.maintenance.search</field>
+            <field name="model">transitops.maintenance</field>
+            <field name="arch" type="xml">
+                <search string="Search Maintenance">
+                    <field name="name" string="Work Order Ref"/>
+                    <field name="vehicle_id"/>
+                    <field name="service_type"/>
+                    <separator/>
+                    <filter string="In Shop" name="filter_in_shop"
+                            domain="[('status', '=', 'in_shop')]"/>
+                    <filter string="Completed" name="filter_completed"
+                            domain="[('status', '=', 'completed')]"/>
+                    <group expand="0" string="Group By">
+                        <filter string="Vehicle" name="group_vehicle"
+                                context="{'group_by': 'vehicle_id'}"/>
+                        <filter string="Service Type" name="group_service"
+                                context="{'group_by': 'service_type'}"/>
+                        <filter string="Month" name="group_month"
+                                context="{'group_by': 'date:month'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             MAINTENANCE ACTION
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="action_transitops_maintenance" model="ir.actions.act_window">
+            <field name="name">Maintenance</field>
+            <field name="res_model">transitops.maintenance</field>
+            <field name="view_mode">tree,form</field>
+            <field name="search_view_id" ref="view_transitops_maintenance_search"/>
+            <field name="context">{'search_default_filter_in_shop': 1}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Log your first maintenance work order!
+                </p>
+                <p>Creating a record automatically moves the vehicle to "In Maintenance" status.
+                Mark it complete to return the vehicle to available.</p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

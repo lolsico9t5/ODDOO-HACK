@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- ════════════════════════════════════════════════════════════
+             TRIP FORM VIEW
+             Screen 4: statusbar at top, two-column layout — left is the
+             trip creation form, right is the live "dispatched trips" list.
+             Overload alert banner when cargo exceeds vehicle capacity.
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_transitops_trip_form" model="ir.ui.view">
+            <field name="name">transitops.trip.form</field>
+            <field name="model">transitops.trip</field>
+            <field name="arch" type="xml">
+                <form string="Trip">
+                    <header>
+                        <button name="action_dispatch"
+                                string="Dispatch Trip"
+                                type="object"
+                                class="btn-primary oe_highlight"
+                                confirm="Dispatch this trip? The vehicle and driver will be marked as On Trip."
+                                attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                        <button name="action_complete"
+                                string="Mark Completed"
+                                type="object"
+                                class="btn-success oe_highlight"
+                                attrs="{'invisible': [('state', '!=', 'dispatched')]}"/>
+                        <button name="action_cancel"
+                                string="Cancel Trip"
+                                type="object"
+                                class="btn-danger"
+                                confirm="Cancel this trip? If dispatched, vehicle and driver will be returned to Available."
+                                attrs="{'invisible': [('state', 'not in', ['draft', 'dispatched'])]}"/>
+                        <button name="action_reset_to_draft"
+                                string="Reset to Draft"
+                                type="object"
+                                attrs="{'invisible': [('state', '!=', 'cancelled')]}"/>
+                        <field name="state" widget="statusbar"
+                               statusbar_visible="draft,dispatched,completed,cancelled"/>
+                    </header>
+                    <sheet>
+                        <!-- Overload Warning Alert (Screen 4 red bordered block) -->
+                        <div class="alert alert-danger" role="alert"
+                             attrs="{'invisible': [('is_overloaded', '=', False)]}">
+                            <i class="fa fa-exclamation-triangle"/>
+                            <strong> Overload Warning!</strong>
+                            Cargo weight (<field name="cargo_weight" readonly="1"/> kg) exceeds vehicle
+                            maximum load capacity (<field name="vehicle_capacity" readonly="1"/> kg).
+                            Reduce cargo or select a higher-capacity vehicle before dispatching.
+                        </div>
+                        <!-- Capacity Warning (approaching limit) -->
+                        <div class="alert alert-warning" role="alert"
+                             attrs="{'invisible': ['|',
+                                 ('is_overloaded', '=', True),
+                                 '|',
+                                 ('cargo_utilization', '&lt;', 90),
+                                 ('vehicle_id', '=', False)]}">
+                            <i class="fa fa-info-circle"/>
+                            Cargo is at <field name="cargo_utilization" readonly="1" widget="percentage"/> of capacity.
+                        </div>
+
+                        <div class="oe_title">
+                            <label for="name" string="Trip Reference"/>
+                            <h1>
+                                <field name="name" readonly="1"/>
+                            </h1>
+                        </div>
+
+                        <!-- Two-column layout: left = trip form, right = live board -->
+                        <div class="row">
+                            <!-- LEFT COLUMN: Trip Creation Form -->
+                            <div class="col-md-7">
+                                <group string="Route Details">
+                                    <field name="source_location" placeholder="Departure location"/>
+                                    <field name="destination_location" placeholder="Destination"/>
+                                    <field name="planned_distance"/>
+                                    <field name="planned_departure"/>
+                                    <field name="actual_departure" readonly="1"
+                                           attrs="{'invisible': [('state', '=', 'draft')]}"/>
+                                    <field name="actual_arrival" readonly="1"
+                                           attrs="{'invisible': [('state', 'not in', ['completed'])]}"/>
+                                </group>
+                                <group string="Assignment">
+                                    <field name="vehicle_id"
+                                           domain="[('status', '=', 'available'), ('active', '=', True)]"
+                                           options="{'no_create': True}"/>
+                                    <field name="vehicle_capacity" readonly="1"
+                                           string="Vehicle Capacity (kg)"/>
+                                    <field name="driver_id"
+                                           domain="[('status', '=', 'available'), ('is_license_expired', '=', False)]"
+                                           options="{'no_create': True}"/>
+                                </group>
+                                <group string="Cargo">
+                                    <field name="cargo_weight"/>
+                                    <field name="cargo_utilization" readonly="1"
+                                           widget="percentage"/>
+                                    <field name="cargo_description"/>
+                                </group>
+                                <group string="Completion Data"
+                                       attrs="{'invisible': [('state', 'not in', ['dispatched', 'completed'])]}">
+                                    <field name="actual_distance"
+                                           attrs="{'required': [('state', '=', 'dispatched')]}"/>
+                                    <field name="final_odometer"/>
+                                    <field name="fuel_consumed"
+                                           attrs="{'required': [('state', '=', 'dispatched')]}"/>
+                                    <field name="notes"/>
+                                </group>
+                            </div>
+
+                            <!-- RIGHT COLUMN: Live Board -->
+                            <div class="col-md-5">
+                                <div class="transitops_section_heading">
+                                    <i class="fa fa-map-marker"/> Live Board — Active Trips
+                                </div>
+                                <field name="id" invisible="1"/>
+                            </div>
+                        </div>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             TRIP TREE VIEW
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_transitops_trip_tree" model="ir.ui.view">
+            <field name="name">transitops.trip.tree</field>
+            <field name="model">transitops.trip</field>
+            <field name="arch" type="xml">
+                <tree string="Trips"
+                      decoration-success="state == 'completed'"
+                      decoration-info="state == 'dispatched'"
+                      decoration-muted="state == 'cancelled'"
+                      decoration-warning="is_overloaded == True">
+                    <field name="name" string="Trip Ref"/>
+                    <field name="source_location" string="From"/>
+                    <field name="destination_location" string="To"/>
+                    <field name="vehicle_id" string="Vehicle"/>
+                    <field name="driver_id" string="Driver"/>
+                    <field name="cargo_weight" string="Cargo (kg)"/>
+                    <field name="planned_distance" string="Planned (km)"/>
+                    <field name="actual_distance" string="Actual (km)"/>
+                    <field name="fuel_consumed" string="Fuel (L)"/>
+                    <field name="state" string="Status"
+                           decoration-success="state == 'completed'"
+                           decoration-info="state == 'dispatched'"
+                           decoration-muted="state == 'cancelled'"/>
+                    <field name="create_date" string="Created"/>
+                    <field name="is_overloaded" invisible="1"/>
+                    <button name="action_dispatch" string="Dispatch" type="object"
+                            class="btn-primary btn-sm"
+                            attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                    <button name="action_complete" string="Complete" type="object"
+                            class="btn-success btn-sm"
+                            attrs="{'invisible': [('state', '!=', 'dispatched')]}"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             TRIP KANBAN VIEW (Live Board widget)
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_transitops_trip_kanban" model="ir.ui.view">
+            <field name="name">transitops.trip.kanban</field>
+            <field name="model">transitops.trip</field>
+            <field name="arch" type="xml">
+                <kanban default_group_by="state">
+                    <field name="name"/>
+                    <field name="state"/>
+                    <field name="vehicle_id"/>
+                    <field name="driver_id"/>
+                    <field name="source_location"/>
+                    <field name="destination_location"/>
+                    <field name="cargo_weight"/>
+                    <field name="is_overloaded"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="oe_kanban_global_click o_kanban_record">
+                                <div class="o_kanban_record_top">
+                                    <div class="o_kanban_record_headings">
+                                        <strong class="o_kanban_record_title">
+                                            <field name="name"/>
+                                        </strong>
+                                    </div>
+                                    <span class="badge rounded-pill"
+                                          t-attf-class="badge rounded-pill
+                                              #{record.state.value == 'draft' ? 'bg-secondary' : ''}
+                                              #{record.state.value == 'dispatched' ? 'bg-info' : ''}
+                                              #{record.state.value == 'completed' ? 'bg-success' : ''}
+                                              #{record.state.value == 'cancelled' ? 'bg-danger' : ''}">
+                                        <field name="state"/>
+                                    </span>
+                                </div>
+                                <div class="o_kanban_record_body">
+                                    <div><i class="fa fa-map-marker text-muted"/>
+                                        <field name="source_location"/>
+                                        → <field name="destination_location"/>
+                                    </div>
+                                    <div class="text-muted small">
+                                        <i class="fa fa-truck"/> <field name="vehicle_id"/>
+                                        | <i class="fa fa-user"/> <field name="driver_id"/>
+                                    </div>
+                                    <div class="small">
+                                        Cargo: <strong><field name="cargo_weight"/> kg</strong>
+                                        <t t-if="record.is_overloaded.value">
+                                            <span class="badge bg-danger ms-1">OVERLOAD</span>
+                                        </t>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             TRIP SEARCH VIEW
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_transitops_trip_search" model="ir.ui.view">
+            <field name="name">transitops.trip.search</field>
+            <field name="model">transitops.trip</field>
+            <field name="arch" type="xml">
+                <search string="Search Trips">
+                    <field name="name" string="Trip Reference"/>
+                    <field name="vehicle_id"/>
+                    <field name="driver_id"/>
+                    <field name="source_location"/>
+                    <field name="destination_location"/>
+                    <separator/>
+                    <filter string="Draft" name="filter_draft"
+                            domain="[('state', '=', 'draft')]"/>
+                    <filter string="Dispatched" name="filter_dispatched"
+                            domain="[('state', '=', 'dispatched')]"/>
+                    <filter string="Completed" name="filter_completed"
+                            domain="[('state', '=', 'completed')]"/>
+                    <filter string="Cancelled" name="filter_cancelled"
+                            domain="[('state', '=', 'cancelled')]"/>
+                    <separator/>
+                    <filter string="Overloaded" name="filter_overloaded"
+                            domain="[('is_overloaded', '=', True)]"/>
+                    <group expand="0" string="Group By">
+                        <filter string="Status" name="group_state"
+                                context="{'group_by': 'state'}"/>
+                        <filter string="Vehicle" name="group_vehicle"
+                                context="{'group_by': 'vehicle_id'}"/>
+                        <filter string="Driver" name="group_driver"
+                                context="{'group_by': 'driver_id'}"/>
+                        <filter string="Date" name="group_date"
+                                context="{'group_by': 'create_date:month'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             TRIP ACTION
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="action_transitops_trip" model="ir.actions.act_window">
+            <field name="name">Trip Dispatcher</field>
+            <field name="res_model">transitops.trip</field>
+            <field name="view_mode">tree,kanban,form</field>
+            <field name="search_view_id" ref="view_transitops_trip_search"/>
+            <field name="context">{'search_default_filter_dispatched': 1}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create your first trip!
+                </p>
+                <p>Dispatch vehicles and drivers to destinations. The system enforces
+                cargo limits, driver compliance, and vehicle availability automatically.</p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

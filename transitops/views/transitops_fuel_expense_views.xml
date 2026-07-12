@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- ════════════════════════════════════════════════════════════
+             FUEL LOG FORM VIEW
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_transitops_fuel_log_form" model="ir.ui.view">
+            <field name="name">transitops.fuel.log.form</field>
+            <field name="model">transitops.fuel.log</field>
+            <field name="arch" type="xml">
+                <form string="Fuel Log Entry">
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name" string="Fuel Log Ref"/>
+                            <h1>
+                                <field name="name" readonly="1"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group string="Fuel Details">
+                                <field name="vehicle_id" options="{'no_create': True}"/>
+                                <field name="date"/>
+                                <field name="fuel_station"/>
+                                <field name="odometer_reading"/>
+                            </group>
+                            <group string="Quantity &amp; Cost">
+                                <field name="liters" string="Litres Added"/>
+                                <field name="cost_per_liter" string="Cost per Litre"/>
+                                <field name="total_cost" readonly="1" string="Total Cost"/>
+                            </group>
+                        </group>
+                        <group string="Notes">
+                            <field name="notes" nolabel="1"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             FUEL LOG TREE VIEW
+             Screen 6 top section: Vehicle, Date, Litres, Cost/L, Total.
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_transitops_fuel_log_tree" model="ir.ui.view">
+            <field name="name">transitops.fuel.log.tree</field>
+            <field name="model">transitops.fuel.log</field>
+            <field name="arch" type="xml">
+                <tree string="Fuel Logs" editable="top">
+                    <field name="name" readonly="1" string="Ref"/>
+                    <field name="vehicle_id" string="Vehicle"
+                           options="{'no_create': True}"/>
+                    <field name="date" string="Date"/>
+                    <field name="liters" string="Litres"/>
+                    <field name="cost_per_liter" string="Cost/Litre"/>
+                    <field name="total_cost" readonly="1" string="Total Cost"
+                           sum="Grand Total Fuel Cost"/>
+                    <field name="odometer_reading" string="Odometer (km)"/>
+                    <field name="fuel_station" string="Station"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             FUEL LOG SEARCH VIEW
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_transitops_fuel_log_search" model="ir.ui.view">
+            <field name="name">transitops.fuel.log.search</field>
+            <field name="model">transitops.fuel.log</field>
+            <field name="arch" type="xml">
+                <search string="Search Fuel Logs">
+                    <field name="vehicle_id"/>
+                    <field name="fuel_station"/>
+                    <group expand="0" string="Group By">
+                        <filter string="Vehicle" name="group_vehicle"
+                                context="{'group_by': 'vehicle_id'}"/>
+                        <filter string="Month" name="group_month"
+                                context="{'group_by': 'date:month'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             FUEL LOG ACTION
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="action_transitops_fuel_log" model="ir.actions.act_window">
+            <field name="name">Fuel Logs</field>
+            <field name="res_model">transitops.fuel.log</field>
+            <field name="view_mode">tree,form</field>
+            <field name="search_view_id" ref="view_transitops_fuel_log_search"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">Log the first fuel fill-up!</p>
+                <p>Track fuel consumption per vehicle to calculate efficiency and cost.</p>
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             EXPENSE FORM VIEW
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_transitops_expense_form" model="ir.ui.view">
+            <field name="name">transitops.expense.form</field>
+            <field name="model">transitops.expense</field>
+            <field name="arch" type="xml">
+                <form string="Operational Expense">
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name" string="Expense Ref"/>
+                            <h1>
+                                <field name="name" readonly="1"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group string="Expense Details">
+                                <field name="vehicle_id" options="{'no_create': True}"/>
+                                <field name="related_trip_id"
+                                       domain="[('vehicle_id', '=', vehicle_id)]"
+                                       options="{'no_create': True}"/>
+                                <field name="expense_type"/>
+                                <field name="date"/>
+                                <field name="receipt_number"/>
+                                <field name="submitted_by" readonly="1"/>
+                            </group>
+                            <group string="Amount">
+                                <field name="amount" string="Amount"/>
+                            </group>
+                        </group>
+                        <group string="Description">
+                            <field name="description" nolabel="1"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             EXPENSE TREE VIEW
+             Screen 6 bottom section: Vehicle, Type, Date, Amount,
+             Receipt No, Related Trip.
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_transitops_expense_tree" model="ir.ui.view">
+            <field name="name">transitops.expense.tree</field>
+            <field name="model">transitops.expense</field>
+            <field name="arch" type="xml">
+                <tree string="Operational Expenses" editable="top">
+                    <field name="name" readonly="1" string="Ref"/>
+                    <field name="vehicle_id" string="Vehicle"
+                           options="{'no_create': True}"/>
+                    <field name="expense_type" string="Type"/>
+                    <field name="date" string="Date"/>
+                    <field name="amount" string="Amount"
+                           sum="Total Expenses"/>
+                    <field name="receipt_number" string="Receipt No"/>
+                    <field name="related_trip_id" string="Trip"/>
+                    <field name="submitted_by" string="Submitted By"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             EXPENSE SEARCH VIEW
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_transitops_expense_search" model="ir.ui.view">
+            <field name="name">transitops.expense.search</field>
+            <field name="model">transitops.expense</field>
+            <field name="arch" type="xml">
+                <search string="Search Expenses">
+                    <field name="vehicle_id"/>
+                    <field name="receipt_number"/>
+                    <field name="related_trip_id"/>
+                    <separator/>
+                    <filter string="Toll" name="filter_toll"
+                            domain="[('expense_type', '=', 'toll')]"/>
+                    <filter string="Parking" name="filter_parking"
+                            domain="[('expense_type', '=', 'parking')]"/>
+                    <group expand="0" string="Group By">
+                        <filter string="Vehicle" name="group_vehicle"
+                                context="{'group_by': 'vehicle_id'}"/>
+                        <filter string="Type" name="group_type"
+                                context="{'group_by': 'expense_type'}"/>
+                        <filter string="Month" name="group_month"
+                                context="{'group_by': 'date:month'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             EXPENSE ACTION
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="action_transitops_expense" model="ir.actions.act_window">
+            <field name="name">Operational Expenses</field>
+            <field name="res_model">transitops.expense</field>
+            <field name="view_mode">tree,form</field>
+            <field name="search_view_id" ref="view_transitops_expense_search"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">Log the first expense!</p>
+                <p>Track tolls, parking, driver allowances, and miscellaneous costs.</p>
+            </field>
+        </record>
+
+        <!-- ════════════════════════════════════════════════════════════
+             COMBINED FUEL & EXPENSE ACTION (Screen 6 parent menu)
+             The parent menu item "Fuel &amp; Expenses" opens the Fuel Log
+             by default; sub-menus navigate to each separately.
+        ════════════════════════════════════════════════════════════════ -->
+
+    </data>
+</odoo>

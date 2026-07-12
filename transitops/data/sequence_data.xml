@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- ═══════════════════════════════════════════════════════════════
+             TRIP SEQUENCE
+             Format: TRIP-2024-0001
+             Resets: Yearly
+        ═══════════════════════════════════════════════════════════════ -->
+        <record id="seq_transitops_trip" model="ir.sequence">
+            <field name="name">TransitOps Trip Reference</field>
+            <field name="code">transitops.trip</field>
+            <field name="prefix">TRIP-%(year)s-</field>
+            <field name="suffix"></field>
+            <field name="padding">4</field>
+            <field name="number_increment">1</field>
+            <field name="number_next">1</field>
+            <field name="implementation">standard</field>
+        </record>
+
+        <!-- ═══════════════════════════════════════════════════════════════
+             MAINTENANCE SEQUENCE
+             Format: MNT-2024-0001
+             Resets: Yearly
+        ═══════════════════════════════════════════════════════════════ -->
+        <record id="seq_transitops_maintenance" model="ir.sequence">
+            <field name="name">TransitOps Maintenance Work Order</field>
+            <field name="code">transitops.maintenance</field>
+            <field name="prefix">MNT-%(year)s-</field>
+            <field name="suffix"></field>
+            <field name="padding">4</field>
+            <field name="number_increment">1</field>
+            <field name="number_next">1</field>
+            <field name="implementation">standard</field>
+        </record>
+
+        <!-- ═══════════════════════════════════════════════════════════════
+             FUEL LOG SEQUENCE
+             Format: FUEL-2024-0001
+             Resets: Yearly
+        ═══════════════════════════════════════════════════════════════ -->
+        <record id="seq_transitops_fuel_log" model="ir.sequence">
+            <field name="name">TransitOps Fuel Log Reference</field>
+            <field name="code">transitops.fuel.log</field>
+            <field name="prefix">FUEL-%(year)s-</field>
+            <field name="suffix"></field>
+            <field name="padding">4</field>
+            <field name="number_increment">1</field>
+            <field name="number_next">1</field>
+            <field name="implementation">standard</field>
+        </record>
+
+        <!-- ═══════════════════════════════════════════════════════════════
+             EXPENSE SEQUENCE
+             Format: EXP-2024-0001
+             Resets: Yearly
+        ═══════════════════════════════════════════════════════════════ -->
+        <record id="seq_transitops_expense" model="ir.sequence">
+            <field name="name">TransitOps Expense Reference</field>
+            <field name="code">transitops.expense</field>
+            <field name="prefix">EXP-%(year)s-</field>
+            <field name="suffix"></field>
+            <field name="padding">4</field>
+            <field name="number_increment">1</field>
+            <field name="number_next">1</field>
+            <field name="implementation">standard</field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+================================================================================
+transitops_menus.xml
+================================================================================
+AUTHENTICATION & ROLE-BASED ROUTING NOTE (Screen 0):
+Odoo's native login screen (/web/login) satisfies the "One login, four roles"
+requirement without any custom authentication code.
+
+HOW ROLE-BASED ROUTING WORKS:
+  1. Every menuitem record below carries a `groups=` attribute referencing
+     one or more res.groups from transitops_security.xml.
+  2. After login, Odoo's web client fetches only the menus the authenticated
+     user's groups permit. Each role therefore sees a distinct menu tree:
+
+     Fleet Manager    → Dashboard, Vehicles, Drivers (read), Trips (read),
+                        Maintenance, Fuel & Expenses (read/write), Analytics, Settings
+     Dispatcher       → Dashboard, Vehicles (read), Drivers (read), Trip Dispatcher
+     Safety Officer   → Dashboard, Drivers & Safety, Trips (read)
+     Financial Analyst→ Dashboard, Fuel & Expenses, Analytics
+
+  3. No custom login controller, session override, or JavaScript is required.
+  4. The ir.model.access.csv ensures that even direct URL access to blocked
+     models returns an AccessError — menus are not the only guard.
+================================================================================
+-->
+<odoo>
+    <data>
+
+        <!-- ════════════════════════════════════════════════════════════
+             ROOT MENU
+             Visible to all four TransitOps groups.
+             The icon uses Font Awesome classes supported in Odoo 17 backend.
+        ════════════════════════════════════════════════════════════════ -->
+        <menuitem
+            id="menu_transitops_root"
+            name="TransitOps"
+            web_icon="transitops,static/description/icon.png"
+            sequence="10"
+            groups="
+                transitops.group_transitops_fleet_manager,
+                transitops.group_transitops_dispatcher,
+                transitops.group_transitops_safety_officer,
+                transitops.group_transitops_financial_analyst"
+        />
+
+        <!-- ════════════════════════════════════════════════════════════
+             MENU: Dashboard
+             Accessible to all roles — each sees only the panels their
+             group's model access permits within the board view.
+        ════════════════════════════════════════════════════════════════ -->
+        <menuitem
+            id="menu_transitops_dashboard"
+            name="Dashboard"
+            parent="menu_transitops_root"
+            action="action_transitops_dashboard"
+            sequence="10"
+            groups="
+                transitops.group_transitops_fleet_manager,
+                transitops.group_transitops_dispatcher,
+                transitops.group_transitops_safety_officer,
+                transitops.group_transitops_financial_analyst"
+        />
+
+        <!-- ════════════════════════════════════════════════════════════
+             MENU: Vehicles (Vehicle Registry)
+             Fleet Manager: CRUD | Dispatcher: Read | Safety Officer: Read
+             Financial Analyst: Read (but menu hidden — they use Analytics)
+        ════════════════════════════════════════════════════════════════ -->
+        <menuitem
+            id="menu_transitops_vehicles"
+            name="Vehicles"
+            parent="menu_transitops_root"
+            sequence="20"
+            groups="
+                transitops.group_transitops_fleet_manager,
+                transitops.group_transitops_dispatcher,
+                transitops.group_transitops_safety_officer"
+        />
+        <menuitem
+            id="menu_transitops_vehicle_registry"
+            name="Vehicle Registry"
+            parent="menu_transitops_vehicles"
+            action="action_transitops_vehicle"
+            sequence="10"
+            groups="
+                transitops.group_transitops_fleet_manager,
+                transitops.group_transitops_dispatcher,
+                transitops.group_transitops_safety_officer"
+        />
+
+        <!-- ════════════════════════════════════════════════════════════
+             MENU: Drivers & Safety
+             Safety Officer: CRUD | Fleet Manager: Read | Dispatcher: Read
+        ════════════════════════════════════════════════════════════════ -->
+        <menuitem
+            id="menu_transitops_drivers"
+            name="Drivers &amp; Safety"
+            parent="menu_transitops_root"
+            sequence="30"
+            groups="
+                transitops.group_transitops_fleet_manager,
+                transitops.group_transitops_dispatcher,
+                transitops.group_transitops_safety_officer"
+        />
+        <menuitem
+            id="menu_transitops_driver_profiles"
+            name="Driver Profiles"
+            parent="menu_transitops_drivers"
+            action="action_transitops_driver"
+            sequence="10"
+            groups="
+                transitops.group_transitops_fleet_manager,
+                transitops.group_transitops_dispatcher,
+                transitops.group_transitops_safety_officer"
+        />
+
+        <!-- ════════════════════════════════════════════════════════════
+             MENU: Trip Dispatcher
+             Dispatcher: CRUD | Fleet Manager: Read | Safety Officer: Read
+        ════════════════════════════════════════════════════════════════ -->
+        <menuitem
+            id="menu_transitops_trips"
+            name="Trip Dispatcher"
+            parent="menu_transitops_root"
+            sequence="40"
+            groups="
+                transitops.group_transitops_fleet_manager,
+                transitops.group_transitops_dispatcher,
+                transitops.group_transitops_safety_officer"
+        />
+        <menuitem
+            id="menu_transitops_trip_list"
+            name="All Trips"
+            parent="menu_transitops_trips"
+            action="action_transitops_trip"
+            sequence="10"
+            groups="
+                transitops.group_transitops_fleet_manager,
+                transitops.group_transitops_dispatcher,
+                transitops.group_transitops_safety_officer"
+        />
+
+        <!-- ════════════════════════════════════════════════════════════
+             MENU: Maintenance
+             Fleet Manager: CRUD | Financial Analyst: Read
+        ════════════════════════════════════════════════════════════════ -->
+        <menuitem
+            id="menu_transitops_maintenance"
+            name="Maintenance"
+            parent="menu_transitops_root"
+            sequence="50"
+            groups="
+                transitops.group_transitops_fleet_manager,
+                transitops.group_transitops_financial_analyst"
+        />
+        <menuitem
+            id="menu_transitops_maintenance_list"
+            name="Work Orders"
+            parent="menu_transitops_maintenance"
+            action="action_transitops_maintenance"
+            sequence="10"
+            groups="
+                transitops.group_transitops_fleet_manager,
+                transitops.group_transitops_financial_analyst"
+        />
+
+        <!-- ════════════════════════════════════════════════════════════
+             MENU: Fuel & Expenses
+             Financial Analyst: CRUD | Fleet Manager: Read/Write
+        ════════════════════════════════════════════════════════════════ -->
+        <menuitem
+            id="menu_transitops_fuel_expenses"
+            name="Fuel &amp; Expenses"
+            parent="menu_transitops_root"
+            sequence="60"
+            groups="
+                transitops.group_transitops_fleet_manager,
+                transitops.group_transitops_financial_analyst"
+        />
+        <menuitem
+            id="menu_transitops_fuel_logs"
+            name="Fuel Logs"
+            parent="menu_transitops_fuel_expenses"
+            action="action_transitops_fuel_log"
+            sequence="10"
+            groups="
+                transitops.group_transitops_fleet_manager,
+                transitops.group_transitops_financial_analyst"
+        />
+        <menuitem
+            id="menu_transitops_expenses"
+            name="Operational Expenses"
+            parent="menu_transitops_fuel_expenses"
+            action="action_transitops_expense"
+            sequence="20"
+            groups="
+                transitops.group_transitops_fleet_manager,
+                transitops.group_transitops_financial_analyst"
+        />
+
+        <!-- ════════════════════════════════════════════════════════════
+             MENU: Analytics & Reports
+             Fleet Manager: Full | Financial Analyst: Full
+        ════════════════════════════════════════════════════════════════ -->
+        <menuitem
+            id="menu_transitops_analytics"
+            name="Analytics"
+            parent="menu_transitops_root"
+            sequence="70"
+            groups="
+                transitops.group_transitops_fleet_manager,
+                transitops.group_transitops_financial_analyst"
+        />
+        <menuitem
+            id="menu_transitops_analytics_fleet"
+            name="Fleet Analytics"
+            parent="menu_transitops_analytics"
+            action="action_transitops_analytics_vehicles"
+            sequence="10"
+            groups="
+                transitops.group_transitops_fleet_manager,
+                transitops.group_transitops_financial_analyst"
+        />
+        <menuitem
+            id="menu_transitops_analytics_trips"
+            name="Trip Analytics"
+            parent="menu_transitops_analytics"
+            action="action_transitops_analytics_trips"
+            sequence="20"
+            groups="
+                transitops.group_transitops_fleet_manager,
+                transitops.group_transitops_financial_analyst"
+        />
+        <menuitem
+            id="menu_transitops_analytics_fuel"
+            name="Fuel Cost Analytics"
+            parent="menu_transitops_analytics"
+            action="action_transitops_analytics_fuel"
+            sequence="30"
+            groups="
+                transitops.group_transitops_fleet_manager,
+                transitops.group_transitops_financial_analyst"
+        />
+
+        <!-- ════════════════════════════════════════════════════════════
+             MENU: Settings & RBAC
+             Fleet Manager only — security configuration is restricted.
+        ════════════════════════════════════════════════════════════════ -->
+        <menuitem
+            id="menu_transitops_settings"
+            name="Settings"
+            parent="menu_transitops_root"
+            action="action_transitops_settings"
+            sequence="90"
+            groups="transitops.group_transitops_fleet_manager"
+        />
+
+    </data>
+</odoo>
